@@ -1,3 +1,7 @@
+export 'package:condominio_app/screens/vehiculo_screen.dart';
+
+export 'package:condominio_app/screens/vehiculo_create.dart';
+
 export 'package:condominio_app/screens/areacomun_screen.dart';
 
 export 'package:condominio_app/screens/areacomun_create.dart';
