@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.green, // Cambiar
         ),
       ),
-      home: const VehiculoScreen()
+      home: const ResidenteScreen()
     );
   }
 }

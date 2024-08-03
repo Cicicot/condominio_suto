@@ -145,75 +145,75 @@ class _VehiculoScreenState extends State<VehiculoScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // DropDownButtonItem() tipo
-                                DropdownButtonFormField<String>(
-                                  value: tipo,
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: "AUTOMÓVIL",
-                                      child: Text( 'Automóvil' )
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "VAGONETA",
-                                      child: Text( 'Vagoneta' )
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "CAMIONETA",
-                                      child: Text( 'Camioneta' )
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "MOTOCICLETA",
-                                      child: Text( 'Motocicleta' )
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "MOTOCARRO",
-                                      child: Text( 'Motocarro' )
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "OTRO",
-                                      child: Text( 'Otro' )
-                                    ),
-                                  ], 
-                                  onChanged: (value) {
-                                    setState(() {
-                                      tipo = value;
-                                    });
-                                  },
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return "Tipo es requerido";
-                                    }
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    label: Text('Tipo')
+                              DropdownButtonFormField<String>(
+                                value: tipo,
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: "AUTOMÓVIL",
+                                    child: Text( 'Automóvil' )
                                   ),
-                                ),
-                                // TextFormField() marca
-                                TextFormField(
-                                  controller: marca,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "Marca, campo obligatorio";
-                                    }
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    label: Text('Marca')
+                                  DropdownMenuItem(
+                                    value: "VAGONETA",
+                                    child: Text( 'Vagoneta' )
                                   ),
-                                ),
-                                // TextFormField() color
-                                TextFormField(
-                                  controller: color,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "Color, campo obligatorio";
-                                    }
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    label: Text('Color')
+                                  DropdownMenuItem(
+                                    value: "CAMIONETA",
+                                    child: Text( 'Camioneta' )
                                   ),
+                                  DropdownMenuItem(
+                                    value: "MOTOCICLETA",
+                                    child: Text( 'Motocicleta' )
+                                  ),
+                                  DropdownMenuItem(
+                                    value: "MOTOCARRO",
+                                    child: Text( 'Motocarro' )
+                                  ),
+                                  DropdownMenuItem(
+                                    value: "OTRO",
+                                    child: Text( 'Otro' )
+                                  ),
+                                ], 
+                                onChanged: (value) {
+                                  setState(() {
+                                    tipo = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null) {
+                                    return "Tipo es requerido";
+                                  }
+                                  return null;
+                                },
+                                decoration: const InputDecoration(
+                                  label: Text('Tipo')
                                 ),
+                              ),
+                              // TextFormField() marca
+                              TextFormField(
+                                controller: marca,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Marca, campo obligatorio";
+                                  }
+                                  return null;
+                                },
+                                decoration: const InputDecoration(
+                                  label: Text('Marca')
+                                ),
+                              ),
+                              // TextFormField() color
+                              TextFormField(
+                                controller: color,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Color, campo obligatorio";
+                                  }
+                                  return null;
+                                },
+                                decoration: const InputDecoration(
+                                  label: Text('Color')
+                                ),
+                              ),
                             ],
                           ),
                         );
