@@ -9,7 +9,9 @@ class DatabaseHelper {
   String propiedadTable = "CREATE TABLE propiedad(idPropiedad INTEGER PRIMARY KEY AUTOINCREMENT, nroPiso TEXT NOT NULL, nroDpto TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String areacomunTable = "CREATE TABLE areacomun(idAreaComun INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, costoAlquiler REAL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String vehiculoTable = "CREATE TABLE vehiculo(idVehiculo TEXT UNIQUE PRIMARY KEY NOT NULL, tipo TEXT NOT NULL, marca TEXT NOT NULL, color TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
-  String residenteTable = "CREATE TABLE residente(idResidente TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, fechaNacimiento TEXT NOT NULL, telefono TEXT NOT NULL, email TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";                                                  
+  String residenteTable = "CREATE TABLE residente(idResidente TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, fechaNacimiento TEXT NOT NULL, telefono TEXT NOT NULL, email TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String usuarioTable = "CREATE TABLE usuario(idUsuario TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, tipo TEXT NOT NULL, telefono TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String visitaTable = "CREATE TABLE visita(idVisita TEXT UNIQUE PRIMARY KEY NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
 
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
@@ -20,8 +22,49 @@ class DatabaseHelper {
       await db.execute(propiedadTable);
       await db.execute(vehiculoTable);
       await db.execute(residenteTable);
+      await db.execute(usuarioTable);
+      await db.execute(visitaTable);
     });
   }
+
+  //Método Login
+  Future<Map<String, dynamic>> login(String id, String password) async {
+    final Database db = await initDB();
+
+    // Consulta en la tabla 'usuario'
+    var usuarioResult = await db.rawQuery(
+      "SELECT * FROM usuario WHERE idUsuario = ? AND password = ?",
+      [id, password]
+    );
+
+  if (usuarioResult.isNotEmpty) {
+    String tipoUsuario = usuarioResult.first['tipo'].toString();
+    return {
+      'success': true,
+      'tipo': tipoUsuario,
+      'usuario': tipoUsuario == 'ADMINISTRADOR' ? 'ADMINISTRADOR' : 'GUARDIA DE SEGURIDAD'
+    };
+  }
+
+  // Consulta en la tabla 'residente'
+  var residenteResult = await db.rawQuery(
+    "SELECT * FROM residente WHERE idResidente = ? AND password = ?",
+    [id, password]
+  );
+
+  if (residenteResult.isNotEmpty) {
+    return {
+      'success': true,
+      'usuario': 'residente'
+    };
+  }
+
+  // Si no se encuentra en ninguna de las tablas
+  return {
+    'success': false
+  };
+}
+
 
   //CRUD
   //------------------- CREATE -------------------//
@@ -43,6 +86,16 @@ class DatabaseHelper {
   Future<int> createResidente(ResidenteModel residente) async {
     final Database db = await initDB();
     return db.insert('residente', residente.toMap());
+  }
+
+  Future<int> createUsuario(UsuarioModel usuario) async {
+    final Database db = await initDB();
+    return db.insert('usuario', usuario.toMap());
+  }
+
+  Future<int> createVisita(VisitaModel visita) async {
+    final Database db = await initDB();
+    return db.insert('visita', visita.toMap());
   }
 
   //------------------- REAG - GET -------------------//
@@ -100,7 +153,7 @@ class DatabaseHelper {
     return result.map((e) => ResidenteModel.fromMap(e)).toList();
   }
 
-  Future<List<ResidenteModel>> getResidentesActivos() async {
+  Future<List<ResidenteModel>> getResidentesActivos() async { //READ - Muestra registros con estado = 1
     final Database db = await initDB();
     List<Map<String,Object?>> result = await db.query(
       'residente',
@@ -110,6 +163,38 @@ class DatabaseHelper {
     return result.map((e) => ResidenteModel.fromMap(e)).toList();
   }
 
+  Future<List<UsuarioModel>> getUsuarios() async { //READ - Muestra todos los registros
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query('usuario');
+    return result.map((e) => UsuarioModel.fromMap(e)).toList();
+  }
+
+  Future<List<UsuarioModel>> getUsuariosActivos() async { //READ - Muestra los registros con estado = 1
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query(
+      'usuario',
+      where: 'estado = ?',
+      whereArgs: [1]
+    );
+    return result.map((e) => UsuarioModel.fromMap(e)).toList();
+  }
+
+  Future<List<VisitaModel>> getVisitas() async { //READ - Muestra todos los registros
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query('visita');
+    return result.map((e) => VisitaModel.fromMap(e)).toList();
+  }
+
+  Future<List<VisitaModel>> getVisitasActivas() async { //READ - Muestra los registros con estado = 1
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query(
+      'visita',
+      where: 'estado = ?',
+      whereArgs: [1]
+    );
+    return result.map((e) => VisitaModel.fromMap(e)).toList();
+  }
+  
   //------------------- UPDATE -------------------//
   Future<int> updatePropiedad(nroPiso, nroDpto, idPropiedad) async {
     final Database db = await initDB();
@@ -137,10 +222,27 @@ class DatabaseHelper {
   Future<int> updateResidente(password, nombre, aPaterno, aMaterno, fechaNacimiento, telefono, email, genero, idResidente) async {
     final Database db = await initDB();
     return db.rawUpdate(
-      'UPDATE residente SET password = ?, nombre = ?, aPaterno = ?, aMaterno = ?, fechaNacimiento = ?, telefono = ?, email = ?, genero = ?',
+      'UPDATE residente SET password = ?, nombre = ?, aPaterno = ?, aMaterno = ?, fechaNacimiento = ?, telefono = ?, email = ?, genero = ? WHERE idResidente = ?',
       [password, nombre, aPaterno, aMaterno, fechaNacimiento, telefono, email, genero, idResidente]
     );
   }
+
+  Future<int> updateUsuario(password, nombre, aPaterno, aMaterno, tipo, telefono, genero, idUsuario) async {
+    final Database db = await initDB();
+    return db.rawUpdate(
+      'UPDATE usuario SET password = ?, nombre = ?, aPaterno = ?, aMaterno = ?, tipo = ?, telefono = ?, genero = ? WHERE idUsuario = ?',
+      [password, nombre, aPaterno, aMaterno, tipo, telefono, genero, idUsuario]
+    );
+  }
+
+  Future<int> updateVisita(nombre, aPaterno, aMaterno, genero, idVisita) async {
+    final Database db = await initDB();
+    return db.rawUpdate(
+      'UPDATE visita SET nombre = ?, aPaterno = ?, aMaterno = ?, genero = ? WHERE idVisita = ?',
+      [nombre, aPaterno, aMaterno, genero, idVisita]
+    );
+  }
+  //nombre, aPaterno, aMaterno, genero
 
   //------------------- DELETE -------------------//
   Future<int> deletePropiedad(int id) async { //Delete Físico
@@ -199,6 +301,36 @@ class DatabaseHelper {
       'residente',
       {'estado': 0}, 
       where: 'idResidente = ?',
+      whereArgs: [id]
+    );
+  }
+
+  Future<int> deleteUsuario(String id) async { //Delete Físico
+    final Database db = await initDB();
+    return db.delete('usuario', where: 'idUsuario = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteLogicoUsuario(String id) async { //Delete Lógico
+    final Database db = await initDB();
+    return db.update(
+      'usuario', 
+      {'estado': 0},
+      where: 'idUsuario = ?',
+      whereArgs: [id]
+    );
+  }
+
+  Future<int> deleteVisita(String id) async { //Delete Físico
+    final Database db = await initDB();
+    return db.delete('visita', where: 'idVisita = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteLogicoVisita(String id) async { //Delete Lógico
+    final Database db = await initDB();
+    return db.update(
+      'visita', 
+      {'estado': 0},
+      where: 'idVisita = ?',
       whereArgs: [id]
     );
   }

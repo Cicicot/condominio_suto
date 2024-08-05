@@ -3,54 +3,50 @@ import 'package:condominio_app/screens/screens.dart';
 import 'package:condominio_app/sqlite/sqlite.dart';
 import 'package:flutter/material.dart';
 
-class ResidenteScreen extends StatefulWidget {
-  const ResidenteScreen({super.key});
+class VisitaScreen extends StatefulWidget {
+  const VisitaScreen({super.key});
 
   @override
-  State<ResidenteScreen> createState() => _ResidenteScreenState();
+  State<VisitaScreen> createState() => _VisitaScreenState();
 }
 
-class _ResidenteScreenState extends State<ResidenteScreen> {
+class _VisitaScreenState extends State<VisitaScreen> {
 
   late DatabaseHelper handler;
-  late Future<List<ResidenteModel>> residentes;
+  late Future<List<VisitaModel>> visitas;
 
   final db = DatabaseHelper();
 
-  final idResidente = TextEditingController();
-  final password = TextEditingController();
+  final idVisita = TextEditingController();
   final nombre = TextEditingController();
   final aPaterno = TextEditingController();
   final aMaterno = TextEditingController();
-  final fechaNacimiento = TextEditingController();
-  final telefono = TextEditingController();
-  final email = TextEditingController();
   String? genero;
-  
- final keyword = TextEditingController();
 
+  final keyword = TextEditingController();
+  
   final fontSize25 = const TextStyle(fontSize: 25);
   final fontSize20 = const TextStyle(fontSize: 20);
 
   @override
   void initState() {
     handler = DatabaseHelper();
-    residentes = handler.getResidentesActivos();
+    visitas = handler.getVisitasActivas();
     handler.initDB().whenComplete(() {
-      //Antes de la siguiente línea, crear el método getAllResidentes() 
-      residentes = getAllResidentes();
+      //Before next code line, create getAllVisitas() method
+      visitas = getAllVisitas();
     });
     super.initState();
   }
 
-  Future<List<ResidenteModel>> getAllResidentes() async {
-    return handler.getResidentesActivos();
-  } 
+  Future<List<VisitaModel>> getAllVisitas() async {
+    return handler.getVisitasActivas();
+  }
 
   //_refresh() method
   Future<void> _refresh() async {
     setState(() {
-      residentes = getAllResidentes();
+      visitas = getAllVisitas();
     });
   }
 
@@ -58,41 +54,37 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text( 'RESIDENTES', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white) ),
+        title: const Text( 'VISITAS', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white) ),
         centerTitle: true,
       ),
-      //First, we are going to show residentes
+      //First, we are going to show visitas
       body: FutureBuilder(
-        future: residentes, 
-        builder: (context, AsyncSnapshot<List<ResidenteModel>> snapshot) {
+        future: visitas, 
+        builder: (context, AsyncSnapshot<List<VisitaModel>> snapshot) {
           if ( snapshot.connectionState == ConnectionState.waiting ) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center( child: CircularProgressIndicator() );
           } else if ( snapshot.hasError ) {
             return Text( snapshot.error.toString() );
           } else {
-            final residents = snapshot.data ?? <ResidenteModel>[];
+            final visits = snapshot.data ?? <VisitaModel>[];
             return ListView.separated(
               itemBuilder: (context, i) {
                 return ListTile(
-                  title: Text( residents[i].idResidente, style: fontSize25 ),
+                  title: Text( visits[i].idVisita, style: fontSize25 ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text( residents[i].password, style: fontSize20 ),
-                      Text( residents[i].nombre, style: fontSize20 ),
-                      Text( residents[i].aPaterno, style: fontSize20 ),
-                      Text( residents[i].aMaterno, style: fontSize20 ),
-                      Text( residents[i].fechaNacimiento, style: fontSize20 ),
-                      Text( residents[i].telefono, style: fontSize20 ),
-                      Text( residents[i].email, style: fontSize20 ),
-                      Text( residents[i].genero, style: fontSize20 ),
+                      Text( visits[i].nombre, style: fontSize20 ),
+                      Text( visits[i].aPaterno, style: fontSize20 ),
+                      Text( visits[i].aMaterno, style: fontSize20 ),
+                      Text( visits[i].genero, style: fontSize20 ),
                     ],
                   ),
                   trailing: IconButton(
                     onPressed: () {
-                      //We call delete method from DatabaseHelper()
-                      db.deleteLogicoResidente(residents[i].idResidente).whenComplete(() {
-                        //After to delete registers, _refresh() bd
+                      //we call delete method from DatabaseHelper()
+                      db.deleteLogicoVisita(visits[i].idVisita).whenComplete(() {
+                        //After to delete a register, _refresh() bd
                         _refresh();
                       });
                     }, 
@@ -101,15 +93,11 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                   onTap: () {
                     //When click on a register
                     setState(() {
-                      idResidente.text = residents[i].idResidente;
-                      password.text = residents[i].password;
-                      nombre.text = residents[i].nombre;
-                      aPaterno.text = residents[i].aPaterno;
-                      aMaterno.text = residents[i].aMaterno;
-                      fechaNacimiento.text = residents[i].fechaNacimiento;
-                      telefono.text = residents[i].telefono;
-                      email.text = residents[i].email;
-                      genero = residents[i].genero;
+                      idVisita.text = visits[i].idVisita;
+                      nombre.text = visits[i].nombre;
+                      aPaterno.text = visits[i].aPaterno;
+                      aMaterno.text = visits[i].aMaterno;
+                      genero = visits[i].genero;
                     });
                     showDialog(
                       context: context, 
@@ -127,18 +115,14 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                                   ),
                                   child: TextButton(
                                     onPressed: () {
-                                      db.updateResidente(
-                                        password.text, 
+                                      db.updateVisita(
                                         nombre.text, 
                                         aPaterno.text, 
                                         aMaterno.text, 
-                                        fechaNacimiento.text, 
-                                        telefono.text, 
-                                        email.text, 
-                                        genero!, 
-                                        residents[i].idResidente).whenComplete(() {
+                                        genero,
+                                        visits[i].idVisita).whenComplete(() {
                                           _refresh();
-                                          Navigator.pop(context);
+                                          Navigator.pop(context);  
                                         });
                                     }, 
                                     child: const Text('Update', style: TextStyle(color: Colors.white))
@@ -161,23 +145,10 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ],
                             )
                           ],
-                          title: const Text( 'Update Residente' ),
+                          title: const Text( 'Update Visita' ),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // TextFormField() password
-                              TextFormField(
-                                controller: password,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "contraseña, campo obligatorio";
-                                  }
-                                  return null;
-                                },
-                                decoration: const InputDecoration(
-                                  label: Text('Contraseña')
-                                ),
-                              ),
                               // TextFormField() nombre
                               TextFormField(
                                 controller: nombre,
@@ -217,45 +188,6 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                                   label: Text('Apellido materno')
                                 ),
                               ),
-                              // TextFormField() fechaNacimiento
-                              TextFormField(
-                                controller: fechaNacimiento,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "Fecha de nacimiento, campo obligatorio";
-                                  }
-                                  return null;
-                                },
-                                decoration: const InputDecoration(
-                                  label: Text('Fecha de nacimiento: DD/MM/AAAA')
-                                ),
-                              ),
-                              // TextFormField() teléfono
-                              TextFormField(
-                                controller: telefono,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "Teléfono, campo obligatorio";
-                                  }
-                                  return null;
-                                },
-                                decoration: const InputDecoration(
-                                  label: Text('Teléfono')
-                                ),
-                              ),
-                              // TextFormField() email
-                              TextFormField(
-                                controller: email,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "Email, campo obligatorio";
-                                  }
-                                  return null;
-                                },
-                                decoration: const InputDecoration(
-                                  label: Text('Email')
-                                ),
-                              ),
                               // DropDownButtonItem() género
                               DropdownButtonFormField<String>(
                                 value: genero,
@@ -267,10 +199,6 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                                   DropdownMenuItem(
                                     value: "FEMENINO",
                                     child: Text( 'Femenino' )
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "93 TIPOS DE GAYS",
-                                    child: Text( '93 tipos de gays' )
                                   ),
                                 ], 
                                 onChanged: (value) {
@@ -297,7 +225,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                 );
               }, 
               separatorBuilder: ( _, __ ) => const Divider( thickness: 3, color: Color.fromARGB(255, 80, 74, 58) ), 
-              itemCount: residents.length
+              itemCount: visits.length
             );
           }
         },
@@ -305,15 +233,16 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => const ResidenteCreate())).then((value) {
+            builder: (context) => const VisitaCreate())).then((value) {
               if (value) {
                 _refresh();
               }
             });
         },
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Agregar Residente', style: TextStyle(color: Colors.white)),
+        label: const Text('Agregar Visita', style: TextStyle(color: Colors.white)),
       ),
     );
   }
+
 }

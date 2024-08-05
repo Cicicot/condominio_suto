@@ -2,25 +2,24 @@ import 'package:condominio_app/jsonmodels/models.dart';
 import 'package:condominio_app/sqlite/sqlite.dart';
 import 'package:flutter/material.dart';
 
-class ResidenteCreate extends StatefulWidget {
-  const ResidenteCreate({super.key});
+class UsuarioCreate extends StatefulWidget {
+  const UsuarioCreate({super.key});
 
   @override
-  State<ResidenteCreate> createState() => _ResidenteCreateState();
+  State<UsuarioCreate> createState() => _UsuarioCreateState();
 }
 
-class _ResidenteCreateState extends State<ResidenteCreate> {
+class _UsuarioCreateState extends State<UsuarioCreate> {
 
   final myStyle = const TextStyle(fontSize: 25);
 
-  final idResidente = TextEditingController();
+  final idUsuario = TextEditingController();
   final password = TextEditingController();
   final nombre = TextEditingController();
   final aPaterno = TextEditingController();
   final aMaterno = TextEditingController();
-  final fechaNacimiento = TextEditingController();
+  String? tipo;
   final telefono = TextEditingController();
-  final email = TextEditingController();
   String? genero;
 
   final formKey = GlobalKey<FormState>();
@@ -37,18 +36,17 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
             color: Colors.white,
             iconSize: 30,
             onPressed: () {
-              //With check, we add a new residente
+              //With check, we add a new user
               //No se permiten empty values
               if ( formKey.currentState!.validate() ) {
-                db.createResidente(ResidenteModel(
-                  idResidente: idResidente.text, 
+                db.createUsuario(UsuarioModel(
+                  idUsuario: idUsuario.text, 
                   password: password.text, 
                   nombre: nombre.text, 
                   aPaterno: aPaterno.text, 
                   aMaterno: aMaterno.text, 
-                  fechaNacimiento: fechaNacimiento.text, 
+                  tipo: tipo!, 
                   telefono: telefono.text, 
-                  email: email.text, 
                   genero: genero!, 
                   estado: "1", 
                   fechaAlta: DateTime.now().toString(), 
@@ -65,21 +63,21 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
         //Remember to put formKey
         key: formKey,
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(10),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // TextFormField() idResidente
+                // TextFormField() idUsuario
                 TextFormField(
-                  controller: idResidente,
+                  controller: idUsuario,
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return "Número de CI, campo obligatorio";
+                      return "Cédula de identidad, campo obligatorio";
                     }
                     return null;
                   },
                   decoration: const InputDecoration(
-                    label: Text('Número de CI')
+                    label: Text('Cédula de identidad')
                   ),
                 ),
                 // TextFormField() password
@@ -133,18 +131,32 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                   decoration: const InputDecoration(
                     label: Text('Apellido materno')
                   ),
-                ),
-                // TextFormField() fechaNacimiento
-                TextFormField(
-                  controller: fechaNacimiento,
+                ),// DropDownButtonItem() tipo
+                DropdownButtonFormField<String>(
+                  value: tipo,
+                  items: const [
+                    DropdownMenuItem(
+                      value: "ADMINISTRADOR",
+                      child: Text( 'Administrador' )
+                    ),
+                    DropdownMenuItem(
+                      value: "GUARDIA DE SEGURIDAD",
+                      child: Text( 'Guardia de Seguridad' )
+                    ),
+                  ], 
+                  onChanged: (value) {
+                    setState(() {
+                      tipo = value;
+                    });
+                  },
                   validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Fecha de nacimiento, campo obligatorio";
+                    if (value == null) {
+                      return "Tipo, campo obligatorio";
                     }
                     return null;
                   },
                   decoration: const InputDecoration(
-                    label: Text('Fecha de nacimiento: DD/MM/AAAA')
+                    label: Text('Tipo')
                   ),
                 ),
                 // TextFormField() teléfono
@@ -160,19 +172,6 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                     label: Text('Teléfono')
                   ),
                 ),
-                // TextFormField() email
-                TextFormField(
-                  controller: email,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Email, campo obligatorio";
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    label: Text('Email')
-                  ),
-                ),
                 // DropDownButtonItem() género
                 DropdownButtonFormField<String>(
                   value: genero,
@@ -184,10 +183,6 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                     DropdownMenuItem(
                       value: "FEMENINO",
                       child: Text( 'Femenino' )
-                    ),
-                    DropdownMenuItem(
-                      value: "39 TIPOS DE GAYS",
-                      child: Text( '39 tipos de gays' )
                     ),
                   ], 
                   onChanged: (value) {
@@ -208,8 +203,8 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
               ],
             ),
           ),
-        )
-      )
+        ),
+      ),
     );
   }
 }
