@@ -1,6 +1,6 @@
 
 class ResidenteModel {
-    final String idResidente;
+    final int idResidente;
     final String password;
     final String nombre;
     final String aPaterno;

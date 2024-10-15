@@ -74,7 +74,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
             return ListView.separated(
               itemBuilder: (context, i) {
                 return ListTile(
-                  title: Text( residents[i].idResidente, style: fontSize25 ),
+                  title: Text( residents[i].idResidente.toString(), style: fontSize25 ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -91,7 +91,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                   trailing: IconButton(
                     onPressed: () {
                       //We call delete method from DatabaseHelper()
-                      db.deleteLogicoResidente(residents[i].idResidente).whenComplete(() {
+                      db.deleteLogicoResidente(residents[i].idResidente.toString()).whenComplete(() {
                         //After to delete registers, _refresh() bd
                         _refresh();
                       });
@@ -101,7 +101,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                   onTap: () {
                     //When click on a register
                     setState(() {
-                      idResidente.text = residents[i].idResidente;
+                      idResidente.text = residents[i].idResidente.toString();
                       password.text = residents[i].password;
                       nombre.text = residents[i].nombre;
                       aPaterno.text = residents[i].aPaterno;
@@ -167,6 +167,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                             children: [
                               // TextFormField() password
                               TextFormField(
+                                keyboardType: TextInputType.visiblePassword,
                                 controller: password,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -180,6 +181,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() nombre
                               TextFormField(
+                                keyboardType: TextInputType.name,
                                 controller: nombre,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -193,6 +195,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() aPaterno
                               TextFormField(
+                                keyboardType: TextInputType.name,
                                 controller: aPaterno,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -206,6 +209,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() aMaterno
                               TextFormField(
+                                keyboardType: TextInputType.name,
                                 controller: aMaterno,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -219,6 +223,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() fechaNacimiento
                               TextFormField(
+                                keyboardType: TextInputType.datetime,
                                 controller: fechaNacimiento,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -232,6 +237,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() teléfono
                               TextFormField(
+                                keyboardType: TextInputType.phone,
                                 controller: telefono,
                                 validator: (value) {
                                   if (value!.isEmpty) {
@@ -245,6 +251,7 @@ class _ResidenteScreenState extends State<ResidenteScreen> {
                               ),
                               // TextFormField() email
                               TextFormField(
+                                keyboardType: TextInputType.emailAddress,
                                 controller: email,
                                 validator: (value) {
                                   if (value!.isEmpty) {

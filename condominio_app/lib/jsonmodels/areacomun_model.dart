@@ -3,7 +3,7 @@
 class AreaComunModel {
     final int? idAreaComun;
     final String nombre;
-    final double costoAlquiler;
+    final int costoAlquiler;
     final String estado;
     final String fechaAlta;
     final String fechaEdit;
@@ -20,7 +20,7 @@ class AreaComunModel {
     factory AreaComunModel.fromMap(Map<String, dynamic> json) => AreaComunModel(
         idAreaComun: json["idAreaComun"],
         nombre: json["nombre"],
-        costoAlquiler: json["costoAlquiler"]?.toDouble(),
+        costoAlquiler: json["costoAlquiler"],
         estado: json["estado"],
         fechaAlta: json["fecha_alta"],
         fechaEdit: json["fecha_edit"],

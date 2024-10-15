@@ -41,7 +41,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
               //No se permiten empty values
               if ( formKey.currentState!.validate() ) {
                 db.createResidente(ResidenteModel(
-                  idResidente: idResidente.text, 
+                  idResidente: int.parse(idResidente.text), 
                   password: password.text, 
                   nombre: nombre.text, 
                   aPaterno: aPaterno.text, 
@@ -71,6 +71,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
               children: [
                 // TextFormField() idResidente
                 TextFormField(
+                  keyboardType: TextInputType.number,
                   controller: idResidente,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -97,6 +98,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() nombre
                 TextFormField(
+                  keyboardType: TextInputType.name,
                   controller: nombre,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -110,6 +112,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() aPaterno
                 TextFormField(
+                  keyboardType: TextInputType.name,
                   controller: aPaterno,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -123,6 +126,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() aMaterno
                 TextFormField(
+                  keyboardType: TextInputType.name,
                   controller: aMaterno,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -136,6 +140,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() fechaNacimiento
                 TextFormField(
+                  keyboardType: TextInputType.datetime,
                   controller: fechaNacimiento,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -149,6 +154,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() teléfono
                 TextFormField(
+                  keyboardType: TextInputType.phone,
                   controller: telefono,
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -162,6 +168,7 @@ class _ResidenteCreateState extends State<ResidenteCreate> {
                 ),
                 // TextFormField() email
                 TextFormField(
+                  keyboardType: TextInputType.emailAddress,
                   controller: email,
                   validator: (value) {
                     if (value!.isEmpty) {

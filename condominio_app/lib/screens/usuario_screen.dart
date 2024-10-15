@@ -1,6 +1,6 @@
 
 import 'package:condominio_app/jsonmodels/models.dart';
-import 'package:condominio_app/screens/usuario_create.dart';
+import 'package:condominio_app/screens/screens.dart';
 import 'package:condominio_app/sqlite/sqlite.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +29,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
 
   final keyword = TextEditingController();
 
-  final fontSize25 = const TextStyle(fontSize: 25);
+  final fontSize25 = const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold);
   final fontSize20 = const TextStyle(fontSize: 20);
 
   @override
@@ -60,6 +60,56 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       appBar: AppBar(
         title: const Text( 'USUARIOS', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white) ),
         centerTitle: true,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.blue
+              ),
+              child: Column(
+                children: [
+                  Text('Administrador', style: fontSize25 ),
+                  Text('Condominio Sutó', style: fontSize20 )
+                ],
+              )
+            ),
+            Column(
+              children: [
+                ListTile(
+                  title: const Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon( Icons.account_balance ),
+                      Text('Realizar Reserva'),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => const ReservaScreen(),
+                    ));
+                  },
+                ),
+                ListTile(
+                  title: const Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon( Icons.logout ),
+                      Text('Cerrar sesión'),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ));
+                  },
+                ),
+              ],
+            )
+          ],
+        ),
       ),
       body: FutureBuilder(
         future: usuarios, 

@@ -184,7 +184,6 @@ class _PropiedadScreenState extends State<PropiedadScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.indigo,
         onPressed: () {
           //We need to call refresh method after a new propiedad is created
           Navigator.push(context, MaterialPageRoute(

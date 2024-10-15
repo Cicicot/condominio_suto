@@ -4,14 +4,15 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
 
-  final databaseName = "cond.db";
+  final databaseName = "condominio.db";
 
   String propiedadTable = "CREATE TABLE propiedad(idPropiedad INTEGER PRIMARY KEY AUTOINCREMENT, nroPiso TEXT NOT NULL, nroDpto TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
-  String areacomunTable = "CREATE TABLE areacomun(idAreaComun INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, costoAlquiler REAL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String areacomunTable = "CREATE TABLE areacomun(idAreaComun INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, costoAlquiler INTEGER NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String vehiculoTable = "CREATE TABLE vehiculo(idVehiculo TEXT UNIQUE PRIMARY KEY NOT NULL, tipo TEXT NOT NULL, marca TEXT NOT NULL, color TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
-  String residenteTable = "CREATE TABLE residente(idResidente TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, fechaNacimiento TEXT NOT NULL, telefono TEXT NOT NULL, email TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String residenteTable = "CREATE TABLE residente(idResidente INTEGER UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, fechaNacimiento TEXT NOT NULL, telefono TEXT NOT NULL, email TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String usuarioTable = "CREATE TABLE usuario(idUsuario TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, tipo TEXT NOT NULL, telefono TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String visitaTable = "CREATE TABLE visita(idVisita TEXT UNIQUE PRIMARY KEY NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String reservaTable = "CREATE TABLE reserva(idReserva INTEGER PRIMARY KEY AUTOINCREMENT, idResidente INTEGER NOT NULL, idAreaComun INTEGER NOT NULL, fechaHora_inicio TEXT NOT NULL, fechaHora_final TEXT NOT NULL, isAceptado TEXT NOT NULL, FOREIGN KEY(idResidente) REFERENCES residente(idResidente), FOREIGN KEY(idAreaComun) REFERENCES areacomun(idAreaComun))";
 
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
@@ -24,6 +25,7 @@ class DatabaseHelper {
       await db.execute(residenteTable);
       await db.execute(usuarioTable);
       await db.execute(visitaTable);
+      await db.execute(reservaTable);
     });
   }
 
@@ -31,41 +33,61 @@ class DatabaseHelper {
   Future<Map<String, dynamic>> login(String id, String password) async {
     final Database db = await initDB();
 
-    // Consulta en la tabla 'usuario'
+    // Consulta en la tabla usuario
     var usuarioResult = await db.rawQuery(
       "SELECT * FROM usuario WHERE idUsuario = ? AND password = ?",
       [id, password]
     );
 
-  if (usuarioResult.isNotEmpty) {
-    String tipoUsuario = usuarioResult.first['tipo'].toString();
+    if (usuarioResult.isNotEmpty) {
+      String tipoUsuario = usuarioResult.first['tipo'].toString();
+      return {
+        'success': true,
+        'tipo': tipoUsuario,
+        'usuario': tipoUsuario == 'ADMINISTRADOR' ? 'ADMINISTRADOR' : 'GUARDIA DE SEGURIDAD'
+      };
+    }
+
+    // Consulta en la tabla residente
+    var residenteResult = await db.rawQuery(
+      "SELECT * FROM residente WHERE idResidente = ? AND password = ?",
+      [id, password]
+    );
+
+    if (residenteResult.isNotEmpty) {
+      return {
+        'success': true,
+        'usuario': 'residente'
+      };
+    }
+
+    // Si no encuentra los credenciales en ninguna de las tablas
     return {
-      'success': true,
-      'tipo': tipoUsuario,
-      'usuario': tipoUsuario == 'ADMINISTRADOR' ? 'ADMINISTRADOR' : 'GUARDIA DE SEGURIDAD'
+      'success': false
     };
   }
 
-  // Consulta en la tabla 'residente'
-  var residenteResult = await db.rawQuery(
-    "SELECT * FROM residente WHERE idResidente = ? AND password = ?",
-    [id, password]
-  );
-
-  if (residenteResult.isNotEmpty) {
-    return {
-      'success': true,
-      'usuario': 'residente'
-    };
+  //Verificación de existencia, antes de agregar una reserva
+  Future<bool> existsResidente(int id) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'residente',
+      where: 'idResidente = ? AND estado = ?',
+      whereArgs: [id, 1],
+    );
+    return result.isNotEmpty;
   }
 
-  // Si no se encuentra en ninguna de las tablas
-  return {
-    'success': false
-  };
-}
-
-
+  Future<bool> existsAreaComun(int id) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'areacomun',
+      where: 'idAreaComun = ? AND estado = ?',
+      whereArgs: [id, 1],
+    );
+    return result.isNotEmpty;
+  }
+  
   //CRUD
   //------------------- CREATE -------------------//
   Future<int> createPropiedad(PropiedadModel propiedad) async {
@@ -98,7 +120,26 @@ class DatabaseHelper {
     return db.insert('visita', visita.toMap());
   }
 
-  //------------------- REAG - GET -------------------//
+  Future<int> createReserva(ReservaModel reserva) async {
+    final Database db = await initDB();
+
+    // Verificar si existen el residente y el área común
+    if (await existsResidente(reserva.idResidente) && await existsAreaComun(reserva.idAreaComun)) {
+      
+      // Insertar la reserva en la tabla "reserva"
+      return await db.insert('reserva', {
+        'idResidente': reserva.idResidente,
+        'idAreaComun': reserva.idAreaComun,
+        'fechaHora_inicio': reserva.fechaHoraInicio,
+        'fechaHora_final': reserva.fechaHoraFinal,
+        'isAceptado': 'Pendiente', // valor por defecto al crear //reserva.isAceptado ?? 'Pendiente',
+      });
+    } else {
+      throw Exception('Residente o Área Común no existen');
+    }
+  }
+
+  //------------------- READ - GET -------------------//
   Future<List<PropiedadModel>> getPropiedades() async { //READ - Muestra todos los registros
     final Database db = await initDB();
     List<Map<String, Object?>> result = await db.query('propiedad');
@@ -194,6 +235,86 @@ class DatabaseHelper {
     );
     return result.map((e) => VisitaModel.fromMap(e)).toList();
   }
+
+//   Future<List<Map<String, dynamic>>> getReservas(int idReserva) async {
+//     final Database db = await initDB();
+
+//     return await db.rawQuery('''
+//       SELECT 
+//         r.idReserva, 
+//         r.fechaHora_inicio, 
+//         r.fechaHora_final, 
+//         r.isAceptado, 
+//         res.nombreResidente, 
+//         res.aPaternoResidente, 
+//         res.aMaternoResidente, 
+//         ac.nombreAreaComun, 
+//         ac.precioAreaComun
+//       FROM reserva r
+//       JOIN residente res ON r.idResidente = res.idResidente
+//       JOIN areaComun ac ON r.idAreaComun = ac.idAreaComun
+//       WHERE r.idReserva = ?
+//     ''', [idReserva]);
+// }
+
+
+  Future<List<ReservaModel>> getReservas() async {
+    final Database db = await initDB();
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT  r.idReserva, 
+              r.idResidente, 
+              res.nombre AS nombreResidente, 
+              res.aPaterno AS aPaternoResidente, 
+              res.aMaterno AS aMaternoResidente,
+              r.idAreaComun, 
+              ac.nombre AS nombreAreaComun, 
+              ac.costoAlquiler AS precioAreaComun,
+              r.fechaHora_inicio AS fechaHoraInicio, 
+              r.fechaHora_final AS fechaHoraFinal, 
+              r.isAceptado
+            FROM reserva r
+            JOIN residente res ON r.idResidente = res.idResidente
+            JOIN areacomun ac ON r.idAreaComun = ac.idAreaComun
+        ''');
+
+      return List.generate(maps.length, (i) {
+        return ReservaModel(
+          idReserva: maps[i]['idReserva'],
+          idResidente: maps[i]['idResidente'],
+          nombreResidente: maps[i]['nombreResidente'],
+          aPaternoResidente: maps[i]['aPaternoResidente'],
+          aMaternoResidente: maps[i]['aMaternoResidente'],
+          idAreaComun: maps[i]['idAreaComun'],
+          nombreAreaComun: maps[i]['nombreAreaComun'],
+          alquilerAreaComun: maps[i]['precioAreaComun'],
+          fechaHoraInicio: maps[i]['fechaHoraInicio'],
+          fechaHoraFinal: maps[i]['fechaHoraFinal'],
+          isAceptado: maps[i]['isAceptado'],
+        );
+      });
+  }
+
+  // READ - Obtener las reservas hechas por Residente 
+  Future<List<ReservaModel>> getReservasByResidente(int idResidente) async {
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query(
+      'reserva',
+      where: 'idResidente = ?',
+      whereArgs: [idResidente]
+    );
+    return result.map((e) => ReservaModel.fromMap(e)).toList();
+  }
+
+  // Read - Obtener las reservas por nombre de área común
+  Future<List<ReservaModel>> getReservasByAreaComun(int idAreaComun) async {
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query(
+      'reserva',
+      where: 'idAreaComun = ?',
+      whereArgs: [idAreaComun]
+    );
+    return result.map((e) => ReservaModel.fromMap(e)).toList();
+  }
   
   //------------------- UPDATE -------------------//
   Future<int> updatePropiedad(nroPiso, nroDpto, idPropiedad) async {
@@ -242,7 +363,14 @@ class DatabaseHelper {
       [nombre, aPaterno, aMaterno, genero, idVisita]
     );
   }
-  //nombre, aPaterno, aMaterno, genero
+  
+  Future<int> updateReserva(fechaHoraInicio, fechaHoraFinal, idReserva) async {
+    final Database db = await initDB();
+    return db.rawUpdate(
+      'UPDATE reserva SET fechaHora_inicio = ?, fechaHora_final = ? WHERE idReserva = ?',
+      [fechaHoraInicio, fechaHoraFinal, idReserva]
+    );
+  }
 
   //------------------- DELETE -------------------//
   Future<int> deletePropiedad(int id) async { //Delete Físico
@@ -334,5 +462,10 @@ class DatabaseHelper {
       whereArgs: [id]
     );
   }
+
+  Future<int> deleteReserva(int id) async {
+    final Database db = await initDB();
+    return db.delete('reserva', where: 'idReserva = ?', whereArgs: [id]);
+  } 
 
 }

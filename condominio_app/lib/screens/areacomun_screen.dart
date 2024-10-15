@@ -18,7 +18,7 @@ class _AreaComunScreenState extends State<AreaComunScreen> {
 
   final db = DatabaseHelper();
 
-  final idAreaC = TextEditingController();
+  final idAreaComun = TextEditingController();
   final nombre = TextEditingController();
   final costoAlquiler = TextEditingController();
 

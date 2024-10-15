@@ -34,7 +34,7 @@ class _AreaComunCreateState extends State<AreaComunCreate> {
               if ( formKey.currentState!.validate() ) {
                 db.createAreaComun(AreaComunModel(
                   nombre: nombre.text, 
-                  costoAlquiler: double.parse(costoAlquiler.text), 
+                  costoAlquiler: int.parse(costoAlquiler.text), 
                   estado: "1", 
                   fechaAlta: DateTime.now().toString(), 
                   fechaEdit: DateTime.now().toString())).whenComplete(() {
@@ -55,6 +55,7 @@ class _AreaComunCreateState extends State<AreaComunCreate> {
           child: Column(
             children: [
               TextFormField(
+                keyboardType: TextInputType.name,
                 controller: nombre,
                 validator: (value) {
                   if ( value!.isEmpty ) {
@@ -67,6 +68,7 @@ class _AreaComunCreateState extends State<AreaComunCreate> {
                 ),
               ),
               TextFormField(
+                keyboardType: TextInputType.number,
                 controller: costoAlquiler,
                 validator: (value) {
                   if ( value!.isEmpty ) {

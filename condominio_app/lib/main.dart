@@ -15,19 +15,23 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,  //Cambiar
+          seedColor: Colors.blueAccent,  //Cambiar
         ),
         useMaterial3: true,
-        primaryColor: Colors.indigo, //Cambiar
+        primaryColor: Colors.blueAccent, //Cambiar
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green, // Cambiar
+          backgroundColor: Colors.blueAccent, // Cambiar
           foregroundColor: Colors.white, // Color del texto del AppBar
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Colors.green, // Cambiar
+          backgroundColor: Colors.blueAccent, // Cambiar
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.blueAccent,
+          elevation: 0
         ),
       ),
-      home: const VisitaScreen()
+      home: const Descarga()
     );
   }
 }
