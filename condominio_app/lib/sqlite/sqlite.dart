@@ -13,6 +13,8 @@ class DatabaseHelper {
   String usuarioTable = "CREATE TABLE usuario(idUsuario TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, tipo TEXT NOT NULL, telefono TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String visitaTable = "CREATE TABLE visita(idVisita TEXT UNIQUE PRIMARY KEY NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String reservaTable = "CREATE TABLE reserva(idReserva INTEGER PRIMARY KEY AUTOINCREMENT, idResidente INTEGER NOT NULL, idAreaComun INTEGER NOT NULL, fechaHora_inicio TEXT NOT NULL, fechaHora_final TEXT NOT NULL, isAceptado TEXT NOT NULL, FOREIGN KEY(idResidente) REFERENCES residente(idResidente), FOREIGN KEY(idAreaComun) REFERENCES areacomun(idAreaComun))";
+  String expensaTable = "CREATE TABLE expensa (idExpensa INTEGER PRIMARY KEY AUTOINCREMENT, descripcion TEXT NOT NULL, monto INTEGER NOT NULL, isPagado TEXT NOT NULL, fechaPago TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String ingresoTable = "CREATE TABLE ingreso(idIngreso INTEGER PRIMARY KEY AUTOINCREMENT, idVisita TEXT NOT NULL, nroDpto TEXT NOT NULL, idVehiculo TEXT DEFAULT 'No tiene vehículo', fechaIngresoHora TEXT DEFAULT CURRENT_TIMESTAMP, fechaIngresoSalida TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(idVisita) REFERENCES visita(idVisita), FOREIGN KEY (nroDpto) REFERENCES propiedad(nroDpto), FOREIGN KEY (idVehiculo) REFERENCES vehiculo(idVehiculo))";
 
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
@@ -26,6 +28,8 @@ class DatabaseHelper {
       await db.execute(usuarioTable);
       await db.execute(visitaTable);
       await db.execute(reservaTable);
+      await db.execute(expensaTable);
+      await db.execute(ingresoTable);
     });
   }
 
@@ -87,6 +91,37 @@ class DatabaseHelper {
     );
     return result.isNotEmpty;
   }
+
+  //Verificación de existencia, antes de agregar un ingreso
+  Future<bool> existsVisita(String id) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'visita',
+      where: 'idVisita = ? AND estado = ?',
+      whereArgs: [id, 1],
+    );
+    return result.isNotEmpty;
+  }
+
+    Future<bool> existsVehiculo(String id) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'vehiculo',
+      where: 'idVehiculo = ? AND estado = ?',
+      whereArgs: [id, 1],
+    );
+    return result.isNotEmpty;
+  }
+
+  Future<bool> existsPropiedad(String id) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'propiedad',
+      where: 'nroDpto = ? AND estado = ?',
+      whereArgs: [id, 1],
+    );
+    return result.isNotEmpty;
+  }
   
   //CRUD
   //------------------- CREATE -------------------//
@@ -136,6 +171,28 @@ class DatabaseHelper {
       });
     } else {
       throw Exception('Residente o Área Común no existen');
+    }
+  }
+
+  Future<int> createExpensa(ExpensaModel expensa) async {
+    final Database db = await initDB();
+    return db.insert('expensa', expensa.toMap());
+  }
+
+  Future<int> createIngreso(IngresoModel ingreso) async {
+    final Database db = await initDB();
+
+    //Verificación si existen: visita, propiedad y vehículo
+    if ( await existsVisita( ingreso.idVisita ) && await existsVehiculo( ingreso.idVehiculo ) && await existsPropiedad( ingreso.nroDpto ) ) {
+
+      //Insertar el ingreso en la tabla "ingreso"
+      return await db.insert( 'ingreso', {
+        'idVisita': ingreso.idVisita,
+        'nroDpto': ingreso.nroDpto,
+        'idVehiculo': ingreso.idVehiculo,
+      });
+    } else {
+      throw Exception( 'Error -> no existe uno de los 3 parámetros: visita, vehiculo o propiedad' );
     }
   }
 
@@ -236,28 +293,6 @@ class DatabaseHelper {
     return result.map((e) => VisitaModel.fromMap(e)).toList();
   }
 
-//   Future<List<Map<String, dynamic>>> getReservas(int idReserva) async {
-//     final Database db = await initDB();
-
-//     return await db.rawQuery('''
-//       SELECT 
-//         r.idReserva, 
-//         r.fechaHora_inicio, 
-//         r.fechaHora_final, 
-//         r.isAceptado, 
-//         res.nombreResidente, 
-//         res.aPaternoResidente, 
-//         res.aMaternoResidente, 
-//         ac.nombreAreaComun, 
-//         ac.precioAreaComun
-//       FROM reserva r
-//       JOIN residente res ON r.idResidente = res.idResidente
-//       JOIN areaComun ac ON r.idAreaComun = ac.idAreaComun
-//       WHERE r.idReserva = ?
-//     ''', [idReserva]);
-// }
-
-
   Future<List<ReservaModel>> getReservas() async {
     final Database db = await initDB();
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
@@ -293,6 +328,49 @@ class DatabaseHelper {
         );
       });
   }
+
+  Future<List<ExpensaModel>> getExpensas() async { //READ - Muestra todos los registros
+    final Database db = await initDB();
+    List<Map<String, Object?>> result = await db.query('expensa');
+    return result.map((e) => ExpensaModel.fromMap(e)).toList();
+  }
+
+  Future<List<IngresoModel>> getIngresos() async {
+  final Database db = await initDB();
+  final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT i.idIngreso, 
+           i.idVisita, 
+           v.nombre AS nombreVisita, 
+           v.aPaterno AS aPaternoVisita, 
+           i.nroDpto, 
+           
+           i.idVehiculo, 
+           
+           i.fechaIngresoHora, 
+           i.fechaIngresoSalida
+      FROM ingreso i
+      JOIN visita v ON i.idVisita = v.idVisita
+      JOIN propiedad p ON i.nroDpto = p.nroDpto
+      LEFT JOIN vehiculo ve ON i.idVehiculo = ve.idVehiculo
+    ''');
+
+  return List.generate(maps.length, (i) {
+    return IngresoModel(
+      idIngreso: maps[i]['idIngreso'],
+      idVisita: maps[i]['idVisita'],
+      nombreVisita: maps[i]['nombreVisita'],
+      aPaternoVisita: maps[i]['aPaternoVisita'],
+      // aMaternoVisita: maps[i]['aMaternoVisita'],
+      nroDpto: maps[i]['nroDpto'],
+      // propietarioDpto: maps[i]['propietarioDpto'],
+      idVehiculo: maps[i]['idVehiculo'],
+      // placaVehiculo: maps[i]['placaVehiculo'],
+      fechaIngresoHora: maps[i]['fechaIngresoHora'],
+      fechaSalidaHora: maps[i]['fechaIngresoSalida'],
+    );
+  });
+}
+
 
   // READ - Obtener las reservas hechas por Residente 
   Future<List<ReservaModel>> getReservasByResidente(int idResidente) async {
@@ -362,6 +440,13 @@ class DatabaseHelper {
       'UPDATE visita SET nombre = ?, aPaterno = ?, aMaterno = ?, genero = ? WHERE idVisita = ?',
       [nombre, aPaterno, aMaterno, genero, idVisita]
     );
+  }
+
+  Future<int> updateExpensa(isPagado, idExpensa) async {
+    final Database db = await initDB();
+    return db.rawUpdate(
+      'UPDATE expensa SET isPagado = ?,  fechaPago = CURRENT_TIMESTAMP WHERE idExpensa = ?',
+      [isPagado, idExpensa]);
   }
   
   Future<int> updateReserva(fechaHoraInicio, fechaHoraFinal, idReserva) async {
@@ -467,5 +552,10 @@ class DatabaseHelper {
     final Database db = await initDB();
     return db.delete('reserva', where: 'idReserva = ?', whereArgs: [id]);
   } 
+
+  Future<int> deleteExpensa(int id) async { //Delete Físico
+    final Database db = await initDB();
+    return db.delete('expensa', where: 'idExpensa = ?', whereArgs: [id]);
+  }
 
 }

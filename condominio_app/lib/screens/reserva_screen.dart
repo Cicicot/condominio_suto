@@ -313,7 +313,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
                 }
               }).catchError((error) {
                 // Maneja cualquier error inesperado que ocurra
-                print('Error: $error');
+                // print('Error: $error');
               });
             },
             child: const Icon( Icons.add, color: Colors.white ),

@@ -1,3 +1,7 @@
+export 'package:condominio_app/screens/expensa_create.dart';
+
+export 'package:condominio_app/screens/expensa_screen.dart';
+
 export 'package:condominio_app/screens/reportes_screen.dart';
 
 export 'package:condominio_app/screens/menu_residente.dart';
@@ -27,4 +31,6 @@ export 'package:condominio_app/screens/areacomun_screen.dart';
 export 'package:condominio_app/screens/areacomun_create.dart';
 export 'package:condominio_app/screens/propiedad_screen.dart';
 export 'package:condominio_app/screens/propiedad_create.dart';
+
+
 

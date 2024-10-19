@@ -10,8 +10,8 @@ class ReservaModel {
     String? nombreAreaComun;
     int? alquilerAreaComun; 
     String? isAceptado;
-    String fechaHoraInicio; //Le quité el final
-    String fechaHoraFinal; //Le quité el final
+    String fechaHoraInicio; 
+    String fechaHoraFinal; 
 
     ReservaModel({
         this.idReserva,
