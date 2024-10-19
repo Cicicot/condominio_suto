@@ -6,6 +6,7 @@ class ExpensaModel {
     int monto;
     String isPagado;
     String fechaPago;
+    int idResidente;
 
     ExpensaModel({
         this.idExpensa,
@@ -13,6 +14,7 @@ class ExpensaModel {
         required this.monto,
         required this.isPagado,
         required this.fechaPago,
+        required this.idResidente
     });
 
     factory ExpensaModel.fromMap(Map<String, dynamic> json) => ExpensaModel(
@@ -20,7 +22,8 @@ class ExpensaModel {
         descripcion: json["descripcion"],
         monto: json["monto"],
         isPagado: json["isPagado"],
-        fechaPago: json["fechaPago"],
+        fechaPago: json["fechaPago"], 
+        idResidente: json["idResidente"]
     );
 
     Map<String, dynamic> toMap() => {
@@ -29,5 +32,6 @@ class ExpensaModel {
         "monto": monto,
         "isPagado": isPagado,
         "fechaPago": fechaPago,
+        "idResidente": idResidente
     };
 }

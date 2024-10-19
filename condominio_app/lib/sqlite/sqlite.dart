@@ -13,7 +13,7 @@ class DatabaseHelper {
   String usuarioTable = "CREATE TABLE usuario(idUsuario TEXT UNIQUE PRIMARY KEY NOT NULL, password TEXT NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, tipo TEXT NOT NULL, telefono TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String visitaTable = "CREATE TABLE visita(idVisita TEXT UNIQUE PRIMARY KEY NOT NULL, nombre TEXT NOT NULL, aPaterno TEXT NOT NULL, aMaterno TEXT NOT NULL, genero TEXT NOT NULL, estado TEXT NOT NULL, fecha_alta TEXT DEFAULT CURRENT_TIMESTAMP, fecha_edit TEXT DEFAULT CURRENT_TIMESTAMP)";
   String reservaTable = "CREATE TABLE reserva(idReserva INTEGER PRIMARY KEY AUTOINCREMENT, idResidente INTEGER NOT NULL, idAreaComun INTEGER NOT NULL, fechaHora_inicio TEXT NOT NULL, fechaHora_final TEXT NOT NULL, isAceptado TEXT NOT NULL, FOREIGN KEY(idResidente) REFERENCES residente(idResidente), FOREIGN KEY(idAreaComun) REFERENCES areacomun(idAreaComun))";
-  String expensaTable = "CREATE TABLE expensa (idExpensa INTEGER PRIMARY KEY AUTOINCREMENT, descripcion TEXT NOT NULL, monto INTEGER NOT NULL, isPagado TEXT NOT NULL, fechaPago TEXT DEFAULT CURRENT_TIMESTAMP)";
+  String expensaTable = "CREATE TABLE expensa (idExpensa INTEGER PRIMARY KEY AUTOINCREMENT, descripcion TEXT NOT NULL, monto INTEGER NOT NULL, isPagado TEXT NOT NULL, fechaPago TEXT DEFAULT CURRENT_TIMESTAMP, idResidente INTEGER NOT NULL, FOREIGN KEY(idResidente) REFERENCES residente(idResidente))";
   String ingresoTable = "CREATE TABLE ingreso(idIngreso INTEGER PRIMARY KEY AUTOINCREMENT, idVisita TEXT NOT NULL, nroDpto TEXT NOT NULL, idVehiculo TEXT DEFAULT 'No tiene vehículo', fechaIngresoHora TEXT DEFAULT CURRENT_TIMESTAMP, fechaIngresoSalida TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(idVisita) REFERENCES visita(idVisita), FOREIGN KEY (nroDpto) REFERENCES propiedad(nroDpto), FOREIGN KEY (idVehiculo) REFERENCES vehiculo(idVehiculo))";
 
   Future<Database> initDB() async {
@@ -174,10 +174,27 @@ class DatabaseHelper {
     }
   }
 
-  Future<int> createExpensa(ExpensaModel expensa) async {
-    final Database db = await initDB();
+  // Future<int> createExpensa(ExpensaModel expensa) async {
+  //   final Database db = await initDB();
+  //   return db.insert('expensa', expensa.toMap());
+  // }
+
+  Future<int?> createExpensaIfResidenteExists(ExpensaModel expensa) async {
+  final Database db = await initDB();
+
+  // Verificar si el residente existe
+  bool residenteExiste = await existsResidente(expensa.idResidente);
+
+  // Si el residente existe, crear la expensa
+  if (residenteExiste) {
     return db.insert('expensa', expensa.toMap());
+  } else {
+    // Si el residente no existe, devolver null o manejar el error
+    print('El residente no existe o está inactivo');
+    return null;
   }
+}
+
 
   Future<int> createIngreso(IngresoModel ingreso) async {
     final Database db = await initDB();

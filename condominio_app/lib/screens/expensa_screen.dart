@@ -17,6 +17,7 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
 
   final db = DatabaseHelper();
 
+  final idResidente = TextEditingController();
   final descripcion = TextEditingController();
   final monto = TextEditingController();
   String? isPagado;
@@ -24,7 +25,7 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
 
   final keyword = TextEditingController();
 
-  final fontSize25 = const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold);
+  final fontSize25 = const TextStyle(fontSize: 25, color: Colors.black, fontWeight: FontWeight.bold);
   final fontSize20 = const TextStyle(fontSize: 20);
 
   @override
@@ -71,6 +72,7 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
                   title: Text( exps[i].idExpensa.toString(), style: fontSize25 ),
                   subtitle: Column(
                     children: [
+                      Text( exps[i].idResidente.toString(), style: fontSize25 ),
                       Text( exps[i].descripcion, style: fontSize20 ),
                       Text( exps[i].monto.toString(), style: fontSize20 ),
                       Text( exps[i].isPagado, style: fontSize20 ),
@@ -88,6 +90,7 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
                   ),
                   onTap: () {
                     setState(() {
+                      idResidente.text = exps[i].idResidente.toString();
                       descripcion.text = exps[i].descripcion;
                       monto.text = exps[i].monto.toString();
                       isPagado = exps[i].isPagado;

@@ -14,6 +14,7 @@ class _ExpensaCreateState extends State<ExpensaCreate> {
 
   final myStyle = const TextStyle(fontSize: 25);
 
+  final idResidente = TextEditingController();
   final idExpensa = TextEditingController();
   final descripcion = TextEditingController();
   final monto = TextEditingController();
@@ -38,7 +39,8 @@ class _ExpensaCreateState extends State<ExpensaCreate> {
               //With the checkButton we add a new expensa
               //We don't let empty values
               if ( formKey.currentState!.validate() ){
-                db.createExpensa(ExpensaModel(
+                db.createExpensaIfResidenteExists(ExpensaModel( // Cambiando el nombre createExpensa por createExpensaIfResidenteExists
+                  idResidente: int.parse(idResidente.text),
                   descripcion: descripcion.text, 
                   monto: int.parse(monto.text), 
                   isPagado: isPagado!, 
@@ -55,6 +57,20 @@ class _ExpensaCreateState extends State<ExpensaCreate> {
         key: formKey,
         child: Column(
           children: [
+            //TextFormField idResidente
+            TextFormField(
+              keyboardType: TextInputType.number,
+              controller: idResidente,
+              validator: (value) {
+                if ( value!.isEmpty ) {
+                  return "CI de Residente, campo obligatorio";
+                }
+                return null;
+              },
+              decoration: const InputDecoration(
+                label: Text('Ingrese CI de un Residente')
+              ),
+            ),
             //TextFormField descripción
             TextFormField(
               keyboardType: TextInputType.text,
