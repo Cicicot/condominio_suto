@@ -2,6 +2,9 @@ import 'package:condominio_app/jsonmodels/models.dart';
 import 'package:condominio_app/screens/screens.dart';
 import 'package:condominio_app/sqlite/sqlite.dart';
 import 'package:flutter/material.dart';
+// import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+// import 'package:printing/printing.dart';
 
 class ExpensaScreen extends StatefulWidget {
   const ExpensaScreen({super.key});
@@ -39,6 +42,15 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
     super.initState();
   }
 
+  // @override
+  // void dispose() {
+  //   idResidente.dispose();
+  //   descripcion.dispose();
+  //   monto.dispose();
+  //   isPagado.dispose();
+  //   fechaPago.dispose();
+  // }
+
   Future<List<ExpensaModel>> getAllExpensas() async {
     return handler.getExpensas();
   }
@@ -48,6 +60,32 @@ class _ExpensaScreenState extends State<ExpensaScreen> {
     setState(() {
       expensas = getAllExpensas();
     });
+  }
+
+  Future<void> generatePdf(List<ExpensaModel> expensaPdf) async {
+    final pdf = pw.Document();
+
+    // Agregar una página con un título y una tabla
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Reporte de Expensas', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              pw.TableHelper.fromTextArray(
+                headers: ['idResidente', 'Descripcion','Monto', 'Pagado', 'Fecha de pago'],
+                data: expensaPdf.map((at) => [at.idResidente, at.descripcion, at.monto, at.isPagado, at.fechaPago]).toList(),
+                border: pw.TableBorder.all(),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                cellAlignment: pw.Alignment.centerLeft,
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   @override

@@ -289,6 +289,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(width: 30),
           FloatingActionButton.extended(
             icon: const Icon( Icons.list_alt_outlined, color: Colors.white ),
             onPressed: () {

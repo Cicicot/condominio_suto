@@ -82,7 +82,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                   title: const Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Icon( Icons.account_balance ),
+                      Icon( Icons.account_balance_wallet ),
                       Text('Realizar Reserva'),
                     ],
                   ),
