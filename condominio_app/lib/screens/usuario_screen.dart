@@ -83,6 +83,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Icon( Icons.account_balance_wallet ),
+                      SizedBox( width: 10 ),
                       Text('Realizar Reserva'),
                     ],
                   ),
@@ -96,7 +97,23 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                   title: const Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
+                      Icon( Icons.monetization_on ),
+                      SizedBox( width: 10 ),
+                      Text('Crear deuda expensa'),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => const ExpensaScreen(),
+                    ));
+                  },
+                ),
+                ListTile(
+                  title: const Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
                       Icon( Icons.logout ),
+                      SizedBox( width: 10 ),
                       Text('Cerrar sesión'),
                     ],
                   ),

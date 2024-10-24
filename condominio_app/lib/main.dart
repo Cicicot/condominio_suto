@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
           elevation: 0
         ),
       ),
-      home: const ExpensaScreen()
+      home: const LoginScreen()
     );
   }
 }
